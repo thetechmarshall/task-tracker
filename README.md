@@ -38,7 +38,7 @@ A **simple, mobile-first Progressive Web App (PWA)** to track daily tasks, maint
 1. Clone the repo:
 
 ```
-git clone https://github.com/your-username/task-tracker.git
+git clone https://github.com/thetechmarshall/task-tracker.git
 cd task-tracker
 
 ```
@@ -60,10 +60,12 @@ html
         <li><label><input type="checkbox"> Code Practice (4pm - 5pm)</label></li>
         <li><label><input type="checkbox"> Backtesting & Journaling (9pm - 12am)</label></li>
     </ul>
-You can edit or add more tasks as needed.
-
 
 ```
+You can edit or add more tasks as needed.
+
+---
+
 
 ## 🧱 Deployment (Vercel)
 Push your project to GitHub.
@@ -77,24 +79,27 @@ Deploy with default settings.
 Once deployed, your PWA will be installable and accessible offline!
 
 
+---
+
+
 ## 📦 PWA Info
 This project includes:
 
-manifest.json — Defines app name, icon, and display mode.
+- manifest.json — Defines app name, icon, and display mode.
 
-service-worker.js — Caches files for offline access.
+- service-worker.js — Caches files for offline access.
 
 To test the PWA locally:
 
-Use a local server (Live Server or npx serve)
+- Use a local server (Live Server or npx serve)
 
-Open in Chrome → DevTools → Application → Manifest
+- Open in Chrome → DevTools → Application → Manifest
 
-Click Install or Add to Home Screen
+- Click Install or Add to Home Screen
 
 ---
 
-🧑‍💻 Author
+🧑‍💻 Author:
 Marshall Uzoma
 🔗 https://github.com/thetechmarshall/
 
