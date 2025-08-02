@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Task Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-md w-full">
+    <h1 class="text-2xl font-bold mb-4 flex items-center justify-center gap-2">
+      <span>📅</span> <span>Daily Task Tracker</span>
+    </h1>
+
+    <!-- Task List Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md mb-4">
+      <ul id="task-list" class="space-y-3 text-gray-800"></ul>
+
+      <div class="mt-4 flex gap-2">
+        <input id="new-task-input" type="text" placeholder="New Task (e.g. Reading - 6am)" class="flex-1 px-3 py-2 border rounded-md text-sm">
+        <button id="add-task-btn" class="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 text-sm">Add</button>
+      </div>
+
+      <button id="complete-btn" class="mt-6 w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 flex justify-center items-center gap-2">
+        Complete ✅
+      </button>
+    </div>
+
+    <!-- Streak Info -->
+    <div class="bg-green-100 p-4 rounded-xl text-sm text-gray-700 shadow-md mb-4">
+      <p><span class="font-bold">🔥 Streak:</span> <span id="streak">0</span> days</p>
+      <p><span class="font-bold">📅 Last Completion:</span> <span id="last-completion">None</span></p>
+    </div>
+
+    <!-- Calendar -->
+    <div class="bg-white mt-6 p-4 rounded-2xl shadow-md">
+      <div class="flex justify-between items-center mb-3">
+        <button id="prevMonth" class="text-sm text-blue-600 hover:underline">← Prev</button>
+        <h2 id="monthTitle" class="text-lg font-bold text-center">📆 August 2025</h2>
+        <button id="nextMonth" class="text-sm text-blue-600 hover:underline">Next →</button>
+      </div>
+
+      <div class="grid grid-cols-7 text-center font-medium mb-2 text-sm">
+        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+      </div>
+      <div id="calendarDays" class="grid grid-cols-7 gap-2 text-center text-sm"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
