@@ -12,7 +12,7 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("push", (event) => {
 	const data = event.data?.json() || {
-		title: "Streak Buddy",
+		title: "Optima",
 		body: "Complete your tasks!",
 	};
 

@@ -1,4 +1,4 @@
-# 📅 Daily Task Tracker
+# 📅 Optima - Daily Task Tracker
 
 A **simple, mobile-first Progressive Web App (PWA)** to track daily tasks, maintain streaks, and stay consistent.
 
