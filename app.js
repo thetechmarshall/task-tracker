@@ -1,8 +1,6 @@
 const defaultTasks = [
-	"JS Sessions (10am - 12pm)",
-	"UI/UX Lessons (2pm - 4pm)",
-	"Code Practice (4pm - 5pm)",
-	"Backtesting & Journaling (9pm - 12am)",
+	"Task 1 (10am - 12pm)",
+	"Task 2 (12pm - 2pm)",
 ];
 
 const taskList = document.getElementById("task-list");
