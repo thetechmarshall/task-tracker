@@ -31,8 +31,6 @@ A **simple, mobile-first Progressive Web App (PWA)** to track daily tasks, maint
 
 ![Task Tracker Screenshot](./screenshot.png)
 
-> _Replace this image with a screenshot of your app UI._
-
 ---
 
 ## 🚀 Getting Started Locally
@@ -43,15 +41,17 @@ A **simple, mobile-first Progressive Web App (PWA)** to track daily tasks, maint
 git clone https://github.com/your-username/task-tracker.git
 cd task-tracker
 
----
+```
 
 2. Open index.html in your browser:
 
 ✅ Works offline after initial load!
 
-```
+
 ## 🛠️ Customize Tasks
 Edit index.html and locate the following section:
+
+```
 
 html
     <ul id="task-list">
@@ -61,6 +61,7 @@ html
         <li><label><input type="checkbox"> Backtesting & Journaling (9pm - 12am)</label></li>
     </ul>
 You can edit or add more tasks as needed.
+
 
 ```
 
@@ -75,7 +76,6 @@ Deploy with default settings.
 
 Once deployed, your PWA will be installable and accessible offline!
 
-```
 
 ## 📦 PWA Info
 This project includes:
@@ -92,7 +92,9 @@ Open in Chrome → DevTools → Application → Manifest
 
 Click Install or Add to Home Screen
 
+---
+
 🧑‍💻 Author
 Marshall Uzoma
-🔗 GitHub
-```
+🔗 https://github.com/thetechmarshall/
+
