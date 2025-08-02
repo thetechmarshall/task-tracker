@@ -70,11 +70,11 @@ You can edit or add more tasks as needed.
 ## 🧱 Deployment (Vercel)
 Push your project to GitHub.
 
-Go to vercel.com, log in with GitHub.
+- Go to vercel.com, log in with GitHub.
 
-Click "New Project", import your repo.
+- Click "New Project", import your repo.
 
-Deploy with default settings.
+- Deploy with default settings.
 
 Once deployed, your PWA will be installable and accessible offline!
 
