@@ -3,24 +3,33 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Streak Buddy</title>
+		<title>Optima</title>
 		<script src="https://cdn.tailwindcss.com"></script>
 		<link rel="manifest" href="manifest.json" />
 		<link rel="icon" href="/icons/icon-192.png" type="image/png" />
 		<meta name="theme-color" content="#2563eb" />
+		<style>
+			@keyframes pop {
+				0% { transform: scale(1); }
+				50% { transform: scale(1.3); }
+				100% { transform: scale(1); }
+			}
+			.pop-animation {
+				animation: pop 0.3s ease-out;
+			}
+		</style>
 	</head>
 	<body class="bg-gray-50 text-gray-800 min-h-screen font-sans">
-		<!-- ✨ FEATURE: Added sticky, top-0, and z-10 to make the header stay in place -->
 		<header class="bg-white shadow-md py-3 sticky top-0 z-10">
 			<h1
-				class="text-3xl font-bold text-center text-blue-700 flex items-center justify-center"
+				class="text-2xl font-semibold text-center text-blue-800 flex items-center justify-center"
 			>
 				<img
 					src="/icons/icon-192.png"
-					alt="Streak Buddy Icon"
+					alt="Optima App Icon"
 					class="w-8 h-8 mr-3"
 				/>
-				Streak Buddy
+				Optima
 			</h1>
 		</header>
 
@@ -28,39 +37,57 @@
 			<!-- Task Tracker Card -->
 			<div class="bg-white rounded-2xl shadow-lg p-4 mb-6">
 				<h2 class="text-lg font-semibold mb-2">Today's Tasks</h2>
+				
+				<!-- ✨ FIX: Welcome message moved OUTSIDE the <ul> to prevent it from being deleted -->
+				<div id="empty-state-message" class="text-center text-gray-500 py-4" style="display: none;">
+					<p class="text-lg">👋 Welcome!</p>
+					<p class="text-sm mt-1">
+						Add a task below to start your first streak.
+					</p>
+				</div>
 				<ul id="task-list" class="space-y-2"></ul>
 
 				<!-- Add Task + Reminder -->
-				<div class="mt-4 space-y-2">
-					<label for="new-task" class="sr-only">New Task</label>
-					<input
-						id="new-task"
-						class="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-						placeholder="Add a new task..."
-						aria-label="New Task Description"
-					/>
-					<div class="flex gap-2">
+				<div class="mt-4 space-y-4">
+					<div>
+						<label for="new-task" class="sr-only">New Task</label>
 						<input
-							type="time"
-							id="task-reminder"
-							class="flex-1 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
-							aria-label="Reminder Time"
+							id="new-task"
+							class="w-full border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+							placeholder="Add a new task..."
+							aria-label="New Task Description"
 						/>
-						<button
-							id="add-task"
-							class="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 text-white px-3 py-1 rounded-lg"
+					</div>
+					<!-- ✨ FIX: Grouped the label and the time input into a single div to fix spacing -->
+					<div>
+						<label
+							for="task-reminder"
+							class="text-sm text-gray-600 ml-1 mb-1 block font-semibold"
+							>Set reminder:</label
 						>
-							Add
-						</button>
+						<div class="flex gap-2">
+							<input
+								type="time"
+								id="task-reminder"
+								class="flex-1 border border-gray-300 rounded-lg px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
+								aria-label="Reminder Time"
+							/>
+							<button
+								id="add-task"
+								class="bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-blue-300 text-white px-4 py-1 rounded-lg"
+							>
+								Add
+							</button>
+						</div>
 					</div>
 				</div>
 
 				<!-- Finish Day Button -->
 				<button
 					id="finish-day"
-					class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold focus:ring-2 focus:ring-green-300"
+					class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold focus:ring-2 focus:ring-green-300 flex items-center justify-center gap-2"
 				>
-					✅ Finish
+					✅ Complete Today's Tasks
 				</button>
 			</div>
 
@@ -68,13 +95,36 @@
 			<div
 				class="bg-green-100 p-4 rounded-xl text-sm text-gray-700 shadow-md mb-4"
 			>
-				<p>
-					<span class="font-bold">🔥 Streak:</span>
-					<span id="streak">0</span> days
+				<p class="flex items-center font-bold">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-5 h-5 mr-2 text-orange-500"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							d="M11.983 1.904a1 1 0 00-1.638-.765l-4.333 6.5A1 1 0 006.833 9H10V3a1 1 0 00-1.638-.765L4.03 7.138A1 1 0 004.833 9H8v5.414l-2.828 2.829a1 1 0 001.414 1.414L10 15.828l3.414 3.415a1 1 0 001.414-1.415L12 14.414V9h3.167a1 1 0 00.802-1.596l-4.333-6.5z"
+						/>
+					</svg>
+					Streak:
+					<span id="streak" class="ml-1 font-medium">0</span>
+					<span class="ml-1 font-medium">days</span>
 				</p>
-				<p>
-					<span class="font-bold">📅 Last Completion:</span>
-					<span id="last-completion">None</span>
+				<p class="flex items-center font-bold mt-2">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="h-5 w-5 mr-2 text-blue-500"
+						viewBox="0 0 20 20"
+						fill="currentColor"
+					>
+						<path
+							fill-rule="evenodd"
+							d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+							clip-rule="evenodd"
+						/>
+					</svg>
+					Last Completion:
+					<span id="last-completion" class="ml-1 font-medium">None</span>
 				</p>
 			</div>
 
@@ -105,7 +155,27 @@
 					<div>Fri</div>
 					<div>Sat</div>
 				</div>
+
 				<div id="calendarDays" class="grid grid-cols-7 gap-2 mt-2"></div>
+
+				<div
+					class="flex items-center justify-center space-x-4 mt-4 text-xs text-gray-500 border-t pt-3"
+				>
+					<div class="flex items-center">
+						<span class="w-3 h-3 bg-green-400 rounded-full mr-1.5"></span>
+						<span>Completed</span>
+					</div>
+					<div class="flex items-center">
+						<span class="w-3 h-3 bg-red-300 rounded-full mr-1.5"></span>
+						<span>Missed</span>
+					</div>
+					<div class="flex items-center">
+						<span
+							class="w-3 h-3 border-2 border-blue-500 rounded-full mr-1.5"
+						></span>
+						<span>Today</span>
+					</div>
+				</div>
 			</div>
 		</main>
 

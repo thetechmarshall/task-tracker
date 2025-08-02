@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	let currentDate = new Date();
 
 	// ---- Initial Setup ----
+	checkStreakHealth(); // FEATURE: Check if streak is broken on app load
 	tasks.forEach((_, i) => scheduleReminderForTask(i));
 	renderTasks();
 	renderCalendar();
@@ -51,53 +52,52 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function renderTasks() {
+		// IMPROVEMENT: Logic to show/hide the empty state welcome message
+		const emptyStateMessage = document.getElementById("empty-state-message");
 		taskList.innerHTML = "";
+
+		if (tasks.length > 0) {
+			if (emptyStateMessage) emptyStateMessage.style.display = "none";
+		} else {
+			if (emptyStateMessage) emptyStateMessage.style.display = "block";
+			// No tasks to render, so we can exit the function early.
+			return;
+		}
+
 		tasks.forEach((task, index) => {
 			const li = document.createElement("li");
 			li.className = "flex items-center justify-between";
+			li.innerHTML = `
+                <label class="flex items-center gap-2">
+                    <input type="checkbox" class="task-checkbox" ${
+											task.completed ? "checked" : ""
+										}/>
+                    <span>${task.text}</span>
+                    ${
+											task.reminderTime
+												? `<span class="text-xs text-gray-500 ml-2">⏰ ${new Date(
+														`1970-01-01T${task.reminderTime}`
+												  ).toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+												  })}</span>`
+												: ""
+										}
+                </label>
+                <button class="text-red-500 text-sm remove-task">🗑️</button>
+            `;
 
-			const label = document.createElement("label");
-			label.className = "flex items-center gap-2";
-
-			const checkbox = document.createElement("input");
-			checkbox.type = "checkbox";
-			checkbox.checked = task.completed;
-			checkbox.addEventListener("change", () => {
-				tasks[index].completed = checkbox.checked;
+			li.querySelector(".task-checkbox").addEventListener("change", (e) => {
+				tasks[index].completed = e.target.checked;
 				saveTasks();
 			});
 
-			const span = document.createElement("span");
-			span.textContent = task.text;
-
-			label.appendChild(checkbox);
-			label.appendChild(span);
-
-			if (task.reminderTime) {
-				const today = new Date().toISOString().slice(0, 10);
-				const time = new Date(
-					`${today}T${task.reminderTime}`
-				).toLocaleTimeString([], {
-					hour: "2-digit",
-					minute: "2-digit",
-				});
-				const reminderLabel = document.createElement("span");
-				reminderLabel.textContent = `⏰ ${time}`;
-				reminderLabel.className = "text-xs text-gray-500 ml-2";
-				label.appendChild(reminderLabel);
-			}
-
-			const removeBtn = document.createElement("button");
-			removeBtn.textContent = "🗑️";
-			removeBtn.className = "text-red-500 text-sm remove-task";
-			removeBtn.addEventListener("click", () => {
+			li.querySelector(".remove-task").addEventListener("click", () => {
 				tasks.splice(index, 1);
 				saveTasks();
 				renderTasks();
 			});
 
-			li.appendChild(label);
-			li.appendChild(removeBtn);
 			taskList.appendChild(li);
 		});
 	}
@@ -107,6 +107,32 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	// ---- Streak Functions ----
+
+	// FEATURE: Checks if the user missed a day and resets the streak.
+	function checkStreakHealth() {
+		if (!lastCompletion) return; // No streak to check
+
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+
+		const lastDate = new Date(lastCompletion);
+		lastDate.setHours(0, 0, 0, 0);
+
+		const yesterday = new Date(today);
+		yesterday.setDate(today.getDate() - 1);
+
+		// If the last completion was not today or yesterday, the streak is broken.
+		if (
+			lastDate.getTime() !== today.getTime() &&
+			lastDate.getTime() !== yesterday.getTime()
+		) {
+			streak = 0;
+			lastCompletion = null;
+			localStorage.setItem("streak", "0");
+			localStorage.removeItem("lastCompletion");
+		}
+	}
+
 	function handleFinishDay() {
 		const incomplete = tasks.some((task) => !task.completed);
 		if (incomplete && tasks.length > 0) {
@@ -120,15 +146,24 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function completeDay() {
-		const today = new Date().toISOString().split("T")[0];
-		if (lastCompletion !== today) {
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const todayStr = `${today.getFullYear()}-${String(
+			today.getMonth() + 1
+		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
+		if (lastCompletion !== todayStr) {
 			const yesterday = new Date();
 			yesterday.setDate(yesterday.getDate() - 1);
-			const yStr = yesterday.toISOString().split("T")[0];
+			yesterday.setHours(0, 0, 0, 0);
+			const yStr = `${yesterday.getFullYear()}-${String(
+				yesterday.getMonth() + 1
+			).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+
 			streak = lastCompletion === yStr ? streak + 1 : 1;
-			lastCompletion = today;
+			lastCompletion = todayStr;
 			localStorage.setItem("streak", streak.toString());
-			localStorage.setItem("lastCompletion", today);
+			localStorage.setItem("lastCompletion", todayStr);
 			updateStreakDisplay();
 			renderCalendar();
 		}
@@ -139,41 +174,70 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function updateStreakDisplay() {
+		if (!streakDisplay || !lastCompletionDisplay) return;
+
 		streakDisplay.textContent = streak;
 		lastCompletionDisplay.textContent = lastCompletion || "None";
+
+		// IMPROVEMENT: Add pop animation
+		if (streak > 0) {
+			const parentP = streakDisplay.parentElement;
+			if (parentP) {
+				parentP.classList.add("pop-animation");
+				setTimeout(() => parentP.classList.remove("pop-animation"), 300);
+			}
+		}
 	}
 
 	// ---- Calendar Functions ----
 	function renderCalendar() {
 		const year = currentDate.getFullYear();
 		const month = currentDate.getMonth();
+
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		const todayStr = today.toISOString().split("T")[0];
+
+		// FIX: Manually build the date string to avoid timezone issues with toISOString()
+		const todayStr = `${today.getFullYear()}-${String(
+			today.getMonth() + 1
+		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
-		const firstDay = new Date(year, month, 1).getDay();
+		const firstDayOfMonth = new Date(year, month, 1).getDay();
 
 		calendarDays.innerHTML = "";
-		monthTitle.textContent = `📆 ${currentDate.toLocaleString("default", {
-			month: "long",
-		})} ${year}`;
+		monthTitle.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            ${currentDate.toLocaleString("default", { month: "long" })} ${year}
+        `;
 
 		const completedDates = new Set();
+		let streakStartDate = null;
 		if (lastCompletion && streak > 0) {
 			const lastDate = new Date(lastCompletion);
 			for (let i = 0; i < streak; i++) {
 				const d = new Date(lastDate);
 				d.setDate(d.getDate() - i);
-				completedDates.add(d.toISOString().split("T")[0]);
+				completedDates.add(
+					`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+						2,
+						"0"
+					)}-${String(d.getDate()).padStart(2, "0")}`
+				);
 			}
+			streakStartDate = new Date(lastDate);
+			streakStartDate.setDate(lastDate.getDate() - (streak - 1));
+			streakStartDate.setHours(0, 0, 0, 0);
 		}
 
-		for (let i = 0; i < firstDay; i++) {
-			const empty = document.createElement("div");
-			calendarDays.appendChild(empty);
+		for (let i = 0; i < firstDayOfMonth; i++) {
+			calendarDays.appendChild(document.createElement("div"));
 		}
 
 		for (let day = 1; day <= daysInMonth; day++) {
+			const dateObj = new Date(year, month, day);
 			const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
 				day
 			).padStart(2, "0")}`;
@@ -182,8 +246,14 @@ document.addEventListener("DOMContentLoaded", () => {
 			cell.className =
 				"rounded-lg py-1 text-sm text-center transition duration-200";
 
+			const isBeforeToday = dateObj < today;
+
 			if (completedDates.has(dateStr)) {
 				cell.classList.add("bg-green-400", "text-white", "font-bold");
+			}
+			// FEATURE: Logic to show missed days
+			else if (isBeforeToday && streakStartDate && dateObj >= streakStartDate) {
+				cell.classList.add("bg-red-300", "text-white", "italic");
 			} else {
 				cell.classList.add("bg-gray-100", "text-gray-600");
 			}
@@ -255,7 +325,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (Notification.permission === "granted") {
 			navigator.serviceWorker.getRegistration().then((reg) => {
 				if (reg) {
-					reg.showNotification("Streak Buddy", {
+					reg.showNotification("Optima", {
+						// Changed to new app name
 						body: message,
 						icon: "./icons/icon-192.png",
 					});
@@ -269,7 +340,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		Notification.requestPermission();
 	}
 
-	// ✨ FEATURE: Register the service worker
 	if ("serviceWorker" in navigator) {
 		window.addEventListener("load", () => {
 			navigator.serviceWorker
