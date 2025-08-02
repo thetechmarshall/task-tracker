@@ -1,22 +1,42 @@
 document.addEventListener("DOMContentLoaded", () => {
-	// ---- Task Handling ----
+	// ---- Get all necessary elements from the DOM ----
 	const taskList = document.getElementById("task-list");
 	const newTaskInput = document.getElementById("new-task");
 	const addTaskButton = document.getElementById("add-task");
 	const finishDayButton = document.getElementById("finish-day");
-	const reminderTimeInput = document.getElementById("task-reminder"); // FIX: Corrected ID from "notification-time"
+	const reminderTimeInput = document.getElementById("task-reminder");
+	const streakDisplay = document.getElementById("streak");
+	const lastCompletionDisplay = document.getElementById("last-completion");
+	const calendarDays = document.getElementById("calendarDays");
+	const monthTitle = document.getElementById("monthTitle");
+	const prevBtn = document.getElementById("prevMonth");
+	const nextBtn = document.getElementById("nextMonth");
+	const modal = document.getElementById("modal");
+	const modalTitle = document.getElementById("modal-title");
+	const modalMessage = document.getElementById("modal-message");
+	const modalConfirm = document.getElementById("modal-confirm");
+	const modalCancel = document.getElementById("modal-cancel");
 
+	// ---- Initialize state variables ----
 	let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 	let streak = Number(localStorage.getItem("streak")) || 0;
 	let lastCompletion = localStorage.getItem("lastCompletion") || null;
+	let currentDate = new Date();
 
-	// Initial render calls moved inside DOMContentLoaded
+	// ---- Initial Setup ----
 	tasks.forEach((_, i) => scheduleReminderForTask(i));
 	renderTasks();
 	renderCalendar();
+	updateStreakDisplay();
 
-	// Add New Task
-	addTaskButton.addEventListener("click", () => {
+	// ---- Event Listeners ----
+	addTaskButton.addEventListener("click", addNewTask);
+	finishDayButton.addEventListener("click", handleFinishDay);
+	prevBtn.addEventListener("click", showPreviousMonth);
+	nextBtn.addEventListener("click", showNextMonth);
+
+	// ---- Task Functions ----
+	function addNewTask() {
 		const text = newTaskInput.value.trim();
 		const reminderTime = reminderTimeInput.value;
 		if (!text) return;
@@ -26,11 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
 		reminderTimeInput.value = "";
 
 		saveTasks();
-		renderTasks(); // FIX: This ensures the new task renders immediately
+		renderTasks();
 		scheduleReminderForTask(tasks.length - 1);
-	});
+	}
 
-	// Render Task List
 	function renderTasks() {
 		taskList.innerHTML = "";
 		tasks.forEach((task, index) => {
@@ -55,8 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			label.appendChild(span);
 
 			if (task.reminderTime) {
-				// FIX: Correctly parse and format the time for display
-				const today = new Date().toISOString().slice(0, 10); // Get YYYY-MM-DD
+				const today = new Date().toISOString().slice(0, 10);
 				const time = new Date(
 					`${today}T${task.reminderTime}`
 				).toLocaleTimeString([], {
@@ -88,43 +106,18 @@ document.addEventListener("DOMContentLoaded", () => {
 		localStorage.setItem("tasks", JSON.stringify(tasks));
 	}
 
-	function scheduleReminderForTask(index) {
-		const task = tasks[index];
-		if (!task.reminderTime) return;
-
-		const today = new Date().toISOString().slice(0, 10);
-		const reminderDateTime = new Date(
-			`${today}T${task.reminderTime}`
-		).getTime();
-		const delay = reminderDateTime - Date.now();
-
-		if (delay > 0) {
-			setTimeout(() => {
-				showNotification(`Reminder: "${task.text}"`);
-			}, delay);
-		}
-	}
-
-	// ---- Streak Handling ----
-	const streakDisplay = document.getElementById("streak");
-	const lastCompletionDisplay = document.getElementById("last-completion");
-
-	if (lastCompletion) {
-		lastCompletionDisplay.textContent = lastCompletion;
-		streakDisplay.textContent = streak;
-	}
-
-	finishDayButton.addEventListener("click", () => {
+	// ---- Streak Functions ----
+	function handleFinishDay() {
 		const incomplete = tasks.some((task) => !task.completed);
-		if (incomplete) {
+		if (incomplete && tasks.length > 0) {
 			showModal(
 				"Not Done",
-				"You still have unfinished tasks. Mark them complete?"
+				"You still have unfinished tasks. Mark them complete anyway?"
 			);
 		} else {
 			completeDay();
 		}
-	});
+	}
 
 	function completeDay() {
 		const today = new Date().toISOString().split("T")[0];
@@ -134,10 +127,9 @@ document.addEventListener("DOMContentLoaded", () => {
 			const yStr = yesterday.toISOString().split("T")[0];
 			streak = lastCompletion === yStr ? streak + 1 : 1;
 			lastCompletion = today;
-			localStorage.setItem("streak", streak);
+			localStorage.setItem("streak", streak.toString());
 			localStorage.setItem("lastCompletion", today);
-			streakDisplay.textContent = streak;
-			lastCompletionDisplay.textContent = today;
+			updateStreakDisplay();
 			renderCalendar();
 		}
 		tasks = tasks.map((t) => ({ ...t, completed: false }));
@@ -146,37 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
 		showNotification("Great job! Your streak continues!");
 	}
 
-	// ---- Push Notification ----
-	function showNotification(message) {
-		if (Notification.permission === "granted") {
-			navigator.serviceWorker.getRegistration().then((reg) => {
-				if (reg) {
-					reg.showNotification("Streak Buddy", {
-						body: message,
-						icon: "./icons/icon-192.png",
-					});
-				}
-			});
-		}
+	function updateStreakDisplay() {
+		streakDisplay.textContent = streak;
+		lastCompletionDisplay.textContent = lastCompletion || "None";
 	}
 
-	if ("Notification" in window && "serviceWorker" in navigator) {
-		Notification.requestPermission();
-	}
-
-	// ---- Calendar ----
-	const calendarDays = document.getElementById("calendarDays");
-	const monthTitle = document.getElementById("monthTitle");
-	const prevBtn = document.getElementById("prevMonth");
-	const nextBtn = document.getElementById("nextMonth");
-
-	let currentDate = new Date();
-
+	// ---- Calendar Functions ----
 	function renderCalendar() {
 		const year = currentDate.getFullYear();
 		const month = currentDate.getMonth();
 		const today = new Date();
-		today.setHours(0, 0, 0, 0); // Normalize today to the start of the day
+		today.setHours(0, 0, 0, 0);
 		const todayStr = today.toISOString().split("T")[0];
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
 		const firstDay = new Date(year, month, 1).getDay();
@@ -205,24 +177,18 @@ document.addEventListener("DOMContentLoaded", () => {
 			const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
 				day
 			).padStart(2, "0")}`;
-			const dateObj = new Date(dateStr);
-			dateObj.setHours(0, 0, 0, 0); // Normalize for comparison
 			const cell = document.createElement("div");
 			cell.textContent = day;
 			cell.className =
 				"rounded-lg py-1 text-sm text-center transition duration-200";
 
-			const isToday = dateStr === todayStr;
-			const isCompleted = completedDates.has(dateStr);
-			const isBeforeToday = dateObj < today;
-
-			if (isCompleted) {
+			if (completedDates.has(dateStr)) {
 				cell.classList.add("bg-green-400", "text-white", "font-bold");
 			} else {
 				cell.classList.add("bg-gray-100", "text-gray-600");
 			}
 
-			if (isToday) {
+			if (dateStr === todayStr) {
 				cell.classList.add("border-2", "border-blue-500", "font-bold");
 			}
 
@@ -230,28 +196,22 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	prevBtn.addEventListener("click", () => {
+	function showPreviousMonth() {
 		currentDate.setMonth(currentDate.getMonth() - 1);
 		renderCalendar();
-	});
+	}
 
-	nextBtn.addEventListener("click", () => {
+	function showNextMonth() {
 		currentDate.setMonth(currentDate.getMonth() + 1);
 		renderCalendar();
-	});
+	}
 
-	// ---- Modal Handling ----
-	const modal = document.getElementById("modal");
-	const modalTitle = document.getElementById("modal-title");
-	const modalMessage = document.getElementById("modal-message");
-	const modalConfirm = document.getElementById("modal-confirm");
-	const modalCancel = document.getElementById("modal-cancel");
-
+	// ---- Modal Functions ----
 	function showModal(title, message) {
 		modalTitle.textContent = title;
 		modalMessage.textContent = message;
 		modal.classList.remove("hidden");
-		modal.classList.add("flex"); // Use flex to center it as per tailwind classes
+		modal.classList.add("flex");
 
 		const onConfirm = () => {
 			completeDay();
@@ -271,5 +231,53 @@ document.addEventListener("DOMContentLoaded", () => {
 
 		modalConfirm.addEventListener("click", onConfirm);
 		modalCancel.addEventListener("click", onCancel);
+	}
+
+	// ---- Notification Functions ----
+	function scheduleReminderForTask(index) {
+		const task = tasks[index];
+		if (!task.reminderTime) return;
+
+		const today = new Date().toISOString().slice(0, 10);
+		const reminderDateTime = new Date(
+			`${today}T${task.reminderTime}`
+		).getTime();
+		const delay = reminderDateTime - Date.now();
+
+		if (delay > 0) {
+			setTimeout(() => {
+				showNotification(`Reminder: "${task.text}"`);
+			}, delay);
+		}
+	}
+
+	function showNotification(message) {
+		if (Notification.permission === "granted") {
+			navigator.serviceWorker.getRegistration().then((reg) => {
+				if (reg) {
+					reg.showNotification("Streak Buddy", {
+						body: message,
+						icon: "./icons/icon-192.png",
+					});
+				}
+			});
+		}
+	}
+
+	// ---- App Setup ----
+	if ("Notification" in window) {
+		Notification.requestPermission();
+	}
+
+	// ✨ FEATURE: Register the service worker
+	if ("serviceWorker" in navigator) {
+		window.addEventListener("load", () => {
+			navigator.serviceWorker
+				.register("./service-worker.js")
+				.then((reg) => console.log("Service Worker registered successfully."))
+				.catch((err) =>
+					console.log("Service Worker registration failed:", err)
+				);
+		});
 	}
 });

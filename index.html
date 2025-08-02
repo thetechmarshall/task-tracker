@@ -10,42 +10,25 @@
 		<meta name="theme-color" content="#2563eb" />
 	</head>
 	<body class="bg-gray-50 text-gray-800 min-h-screen font-sans">
-		<main class="max-w-md mx-auto py-6 px-4">
-			<h1 class="text-3xl font-bold text-center text-blue-700 mb-4">
-				📋Streak Buddy
+		<!-- ✨ FEATURE: Added sticky, top-0, and z-10 to make the header stay in place -->
+		<header class="bg-white shadow-md py-3 sticky top-0 z-10">
+			<h1
+				class="text-3xl font-bold text-center text-blue-700 flex items-center justify-center"
+			>
+				<img
+					src="/icons/icon-192.png"
+					alt="Streak Buddy Icon"
+					class="w-8 h-8 mr-3"
+				/>
+				Streak Buddy
 			</h1>
+		</header>
 
+		<main class="max-w-md mx-auto py-6 px-4">
 			<!-- Task Tracker Card -->
 			<div class="bg-white rounded-2xl shadow-lg p-4 mb-6">
 				<h2 class="text-lg font-semibold mb-2">Today's Tasks</h2>
-				<ul id="task-list" class="space-y-2">
-					<li>
-						<label class="flex items-center gap-2"
-							><input type="checkbox" aria-label="Complete JS Sessions" /> Task 1 (10am - 12pm)</label
-						>
-					</li>
-					<li>
-						<label class="flex items-center gap-2"
-							><input type="checkbox" aria-label="Complete UI/UX Lessons" />
-							Task 2 (2pm - 4pm)</label
-						>
-					</li>
-					<li>
-						<label class="flex items-center gap-2"
-							><input type="checkbox" aria-label="Complete Code Practice" />
-							Task 3 (4pm - 5pm)</label
-						>
-					</li>
-					<li>
-						<label class="flex items-center gap-2"
-							><input
-								type="checkbox"
-								aria-label="Complete Backtesting and Journaling"
-							/>
-							Task 4 (9pm - 12am)</label
-						>
-					</li>
-				</ul>
+				<ul id="task-list" class="space-y-2"></ul>
 
 				<!-- Add Task + Reminder -->
 				<div class="mt-4 space-y-2">
@@ -104,9 +87,7 @@
 					>
 						← Prev
 					</button>
-					<h2 id="monthTitle" class="text-lg font-bold text-center">
-						📆 August 2025
-					</h2>
+					<h2 id="monthTitle" class="text-lg font-bold text-center"></h2>
 					<button
 						id="nextMonth"
 						class="text-sm font-semibold text-gray-700 hover:underline focus:outline-none"
@@ -124,10 +105,7 @@
 					<div>Fri</div>
 					<div>Sat</div>
 				</div>
-				<div
-					id="calendarDays"
-					class="grid grid-cols-7 gap-2 mt-2"
-				></div>
+				<div id="calendarDays" class="grid grid-cols-7 gap-2 mt-2"></div>
 			</div>
 		</main>
 
