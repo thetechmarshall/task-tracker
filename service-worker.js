@@ -1,6 +1,6 @@
 // sw.js
 
-const CACHE_NAME = "task-tracker-cache-v1";
+const CACHE_NAME = "streak-buddy-cache-v1";
 const urlsToCache = [
 	"./",
 	"./index.html",
