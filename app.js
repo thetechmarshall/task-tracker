@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	let currentDate = new Date();
 
 	// ---- Initial Setup ----
-	checkStreakHealth(); // FEATURE: Check if streak is broken on app load
+	checkStreakHealth();
 	tasks.forEach((_, i) => scheduleReminderForTask(i));
 	renderTasks();
 	renderCalendar();
@@ -51,53 +51,81 @@ document.addEventListener("DOMContentLoaded", () => {
 		scheduleReminderForTask(tasks.length - 1);
 	}
 
+	// ✨ --- THIS FUNCTION HAS BEEN UPDATED --- ✨
 	function renderTasks() {
-		// IMPROVEMENT: Logic to show/hide the empty state welcome message
 		const emptyStateMessage = document.getElementById("empty-state-message");
-		taskList.innerHTML = "";
+		taskList.innerHTML = ""; // Clear the list before rendering
 
+		// Show or hide the welcome message based on task count
 		if (tasks.length > 0) {
 			if (emptyStateMessage) emptyStateMessage.style.display = "none";
 		} else {
 			if (emptyStateMessage) emptyStateMessage.style.display = "block";
-			// No tasks to render, so we can exit the function early.
-			return;
+			return; // Exit if there are no tasks
 		}
 
 		tasks.forEach((task, index) => {
 			const li = document.createElement("li");
 			li.className = "flex items-center justify-between";
-			li.innerHTML = `
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" class="task-checkbox" ${
-											task.completed ? "checked" : ""
-										}/>
-                    <span>${task.text}</span>
-                    ${
-											task.reminderTime
-												? `<span class="text-xs text-gray-500 ml-2">⏰ ${new Date(
-														`1970-01-01T${task.reminderTime}`
-												  ).toLocaleTimeString([], {
-														hour: "2-digit",
-														minute: "2-digit",
-												  })}</span>`
-												: ""
-										}
-                </label>
-                <button class="text-red-500 text-sm remove-task">🗑️</button>
-            `;
 
-			li.querySelector(".task-checkbox").addEventListener("change", (e) => {
-				tasks[index].completed = e.target.checked;
+			const label = document.createElement("label");
+			label.className = "flex items-center gap-2 cursor-pointer";
+
+			const checkbox = document.createElement("input");
+			checkbox.type = "checkbox";
+			checkbox.className = "task-checkbox";
+			checkbox.checked = task.completed;
+
+			const span = document.createElement("span");
+			span.textContent = task.text;
+			span.className = "transition-colors duration-200"; 
+
+			// On initial render, apply strikethrough if task is completed
+			if (task.completed) {
+				span.classList.add("line-through", "text-gray-400");
+			}
+
+			// Add event listener to toggle styles and state on change
+			checkbox.addEventListener("change", () => {
+				tasks[index].completed = checkbox.checked;
 				saveTasks();
+
+				// Toggle classes for instant visual feedback
+				if (checkbox.checked) {
+					span.classList.add("line-through", "text-gray-400");
+				} else {
+					span.classList.remove("line-through", "text-gray-400");
+				}
 			});
 
-			li.querySelector(".remove-task").addEventListener("click", () => {
+			label.appendChild(checkbox);
+			label.appendChild(span);
+
+			// Add reminder time if it exists
+			if (task.reminderTime) {
+				const reminderLabel = document.createElement("span");
+				reminderLabel.className = "text-xs text-gray-500 ml-2";
+				const timeParts = task.reminderTime.split(":");
+				const hours = parseInt(timeParts[0]);
+				const minutes = timeParts[1];
+				const ampm = hours >= 12 ? "PM" : "AM";
+				const formattedHours = hours % 12 || 12; // Convert 0 to 12
+				reminderLabel.textContent = `⏰ ${formattedHours}:${minutes} ${ampm}`;
+				label.appendChild(reminderLabel);
+			}
+
+			const removeBtn = document.createElement("button");
+			removeBtn.textContent = "🗑️";
+			removeBtn.className =
+				"text-red-500 text-sm remove-task hover:text-red-700";
+			removeBtn.addEventListener("click", () => {
 				tasks.splice(index, 1);
 				saveTasks();
-				renderTasks();
+				renderTasks(); 
 			});
 
+			li.appendChild(label);
+			li.appendChild(removeBtn);
 			taskList.appendChild(li);
 		});
 	}
@@ -107,10 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	// ---- Streak Functions ----
-
-	// FEATURE: Checks if the user missed a day and resets the streak.
 	function checkStreakHealth() {
-		if (!lastCompletion) return; // No streak to check
+		if (!lastCompletion) return;
 
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
@@ -121,7 +147,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		const yesterday = new Date(today);
 		yesterday.setDate(today.getDate() - 1);
 
-		// If the last completion was not today or yesterday, the streak is broken.
 		if (
 			lastDate.getTime() !== today.getTime() &&
 			lastDate.getTime() !== yesterday.getTime()
@@ -179,7 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		streakDisplay.textContent = streak;
 		lastCompletionDisplay.textContent = lastCompletion || "None";
 
-		// IMPROVEMENT: Add pop animation
 		if (streak > 0) {
 			const parentP = streakDisplay.parentElement;
 			if (parentP) {
@@ -193,15 +217,11 @@ document.addEventListener("DOMContentLoaded", () => {
 	function renderCalendar() {
 		const year = currentDate.getFullYear();
 		const month = currentDate.getMonth();
-
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-
-		// FIX: Manually build the date string to avoid timezone issues with toISOString()
 		const todayStr = `${today.getFullYear()}-${String(
 			today.getMonth() + 1
 		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
 		const firstDayOfMonth = new Date(year, month, 1).getDay();
 
@@ -245,14 +265,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			cell.textContent = day;
 			cell.className =
 				"rounded-lg py-1 text-sm text-center transition duration-200";
-
 			const isBeforeToday = dateObj < today;
 
 			if (completedDates.has(dateStr)) {
 				cell.classList.add("bg-green-400", "text-white", "font-bold");
-			}
-			// FEATURE: Logic to show missed days
-			else if (isBeforeToday && streakStartDate && dateObj >= streakStartDate) {
+			} else if (
+				isBeforeToday &&
+				streakStartDate &&
+				dateObj >= streakStartDate
+			) {
 				cell.classList.add("bg-red-300", "text-white", "italic");
 			} else {
 				cell.classList.add("bg-gray-100", "text-gray-600");
@@ -326,7 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			navigator.serviceWorker.getRegistration().then((reg) => {
 				if (reg) {
 					reg.showNotification("Optima", {
-						// Changed to new app name
 						body: message,
 						icon: "./icons/icon-192.png",
 					});
