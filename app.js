@@ -21,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const congratsClose = document.getElementById("congrats-close");
 
 	// ---- Initialize state variables ----
-	// FIX: Tasks are now loaded from a date-stamped object
 	let tasksData = JSON.parse(localStorage.getItem("tasksData")) || {
 		date: null,
 		tasks: [],
@@ -33,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// ---- Initial Setup ----
 	checkStreakHealth();
-	checkAndResetTasksForNewDay(); 
+	checkAndResetTasksForNewDay();
 	updateFinishButtonState();
 	tasks.forEach((_, i) => scheduleReminderForTask(i));
 	renderTasks();
@@ -53,6 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			congratsModal.classList.remove("flex");
 		}, 300);
 	});
+
+	function formatDate(date) {
+		const day = String(date.getDate()).padStart(2, "0");
+		const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+		const year = date.getFullYear();
+		return `${day}-${month}-${year}`;
+	}
 
 	// ---- Task Functions ----
 	function addNewTask() {
@@ -128,27 +134,17 @@ document.addEventListener("DOMContentLoaded", () => {
 		});
 	}
 
-	// Saves the current date along with the tasks
 	function saveTasks() {
-		const today = new Date();
-		const todayStr = `${today.getFullYear()}-${String(
-			today.getMonth() + 1
-		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+		const todayStr = formatDate(new Date()); // Use helper function
 		tasksData = { date: todayStr, tasks: tasks };
 		localStorage.setItem("tasksData", JSON.stringify(tasksData));
 	}
 
 	// ---- Streak Functions ----
-
-	// Resets the task list if the user opens the app on a new day.
 	function checkAndResetTasksForNewDay() {
-		const today = new Date();
-		const todayStr = `${today.getFullYear()}-${String(
-			today.getMonth() + 1
-		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-
+		const todayStr = formatDate(new Date()); // Use helper function
 		if (tasksData.date !== todayStr) {
-			tasks = []; // Clear tasks for the new day
+			tasks = [];
 			tasksData = { date: todayStr, tasks: [] };
 			saveTasks();
 		}
@@ -158,10 +154,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (!lastCompletion) return;
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		const lastDate = new Date(lastCompletion);
+
+		// Dates stored in DD-MM-YYYY format need to be parsed carefully
+		const parts = lastCompletion.split("-");
+		const lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
 		lastDate.setHours(0, 0, 0, 0);
+
 		const yesterday = new Date(today);
 		yesterday.setDate(today.getDate() - 1);
+
 		if (
 			lastDate.getTime() !== today.getTime() &&
 			lastDate.getTime() !== yesterday.getTime()
@@ -188,16 +189,14 @@ document.addEventListener("DOMContentLoaded", () => {
 	function completeDay() {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		const todayStr = `${today.getFullYear()}-${String(
-			today.getMonth() + 1
-		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+		const todayStr = formatDate(today); // Use helper function
+
 		if (lastCompletion !== todayStr) {
 			const yesterday = new Date();
 			yesterday.setDate(yesterday.getDate() - 1);
 			yesterday.setHours(0, 0, 0, 0);
-			const yStr = `${yesterday.getFullYear()}-${String(
-				yesterday.getMonth() + 1
-			).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+			const yStr = formatDate(yesterday); // Use helper function
+
 			streak = lastCompletion === yStr ? streak + 1 : 1;
 			lastCompletion = todayStr;
 			localStorage.setItem("streak", streak.toString());
@@ -223,10 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	}
 
 	function updateFinishButtonState() {
-		const today = new Date();
-		const todayStr = `${today.getFullYear()}-${String(
-			today.getMonth() + 1
-		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+		const todayStr = formatDate(new Date()); // Use helper function
 		if (lastCompletion === todayStr) {
 			finishDayButton.innerHTML = `✅ Completed`;
 			finishDayButton.disabled = true;
@@ -254,9 +250,8 @@ document.addEventListener("DOMContentLoaded", () => {
 		const month = currentDate.getMonth();
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		const todayStr = `${String(today.getDate()).padStart(2, "0")}-${String(
-			today.getMonth() + 1
-		).padStart(2, "0")}-${today.getFullYear()}`;
+		const todayStr = formatDate(today); // Use helper function
+
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
 		const firstDayOfMonth = new Date(year, month, 1).getDay();
 		calendarDays.innerHTML = "";
@@ -266,17 +261,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		)} ${year}`;
 		const completedDates = new Set();
 		let streakStartDate = null;
+
 		if (lastCompletion && streak > 0) {
-			const lastDate = new Date(lastCompletion);
+			const parts = lastCompletion.split("-");
+			const lastDate = new Date(parts[2], parts[1] - 1, parts[0]);
+
 			for (let i = 0; i < streak; i++) {
 				const d = new Date(lastDate);
 				d.setDate(d.getDate() - i);
-				completedDates.add(
-					`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
-						2,
-						"0"
-					)}-${String(d.getDate()).padStart(2, "0")}`
-				);
+				completedDates.add(formatDate(d)); // Use helper function
 			}
 			streakStartDate = new Date(lastDate);
 			streakStartDate.setDate(lastDate.getDate() - (streak - 1));
@@ -287,14 +280,13 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 		for (let day = 1; day <= daysInMonth; day++) {
 			const dateObj = new Date(year, month, day);
-			const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-				day
-			).padStart(2, "0")}`;
+			const dateStr = formatDate(dateObj); // Use helper function
 			const cell = document.createElement("div");
 			cell.textContent = day;
 			cell.className =
 				"rounded-lg py-1 text-sm text-center transition duration-200";
 			const isBeforeToday = dateObj < today;
+
 			if (completedDates.has(dateStr)) {
 				cell.classList.add("bg-green-400", "text-white", "font-bold");
 			} else if (
@@ -372,9 +364,9 @@ document.addEventListener("DOMContentLoaded", () => {
 	function scheduleReminderForTask(index) {
 		const task = tasks[index];
 		if (!task.reminderTime) return;
-		const today = new Date().toISOString().slice(0, 10);
+		const todayStr = new Date().toISOString().slice(0, 10);
 		const reminderDateTime = new Date(
-			`${today}T${task.reminderTime}`
+			`${todayStr}T${task.reminderTime}`
 		).getTime();
 		const delay = reminderDateTime - Date.now();
 		if (delay > 0) {
@@ -397,7 +389,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	// ---- Service Worker App Setup ----
 	if ("Notification" in window) {
 		Notification.requestPermission();
 	}
