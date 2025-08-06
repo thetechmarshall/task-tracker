@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	const newTaskInput = document.getElementById("new-task");
 	const addTaskButton = document.getElementById("add-task");
 	const finishDayButton = document.getElementById("finish-day");
-	// ... (rest of the element selections are the same)
 	const reminderTimeInput = document.getElementById("task-reminder");
 	const streakDisplay = document.getElementById("streak");
 	const lastCompletionDisplay = document.getElementById("last-completion");
@@ -22,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	const congratsClose = document.getElementById("congrats-close");
 
 	// ---- Initialize state variables ----
-	// ✨ FIX: Tasks are now loaded from a date-stamped object
+	// FIX: Tasks are now loaded from a date-stamped object
 	let tasksData = JSON.parse(localStorage.getItem("tasksData")) || {
 		date: null,
 		tasks: [],
@@ -34,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	// ---- Initial Setup ----
 	checkStreakHealth();
-	checkAndResetTasksForNewDay(); // NEW: Wipes tasks if it's a new day
+	checkAndResetTasksForNewDay(); 
 	updateFinishButtonState();
 	tasks.forEach((_, i) => scheduleReminderForTask(i));
 	renderTasks();
@@ -186,7 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	}
 
-	
 	function completeDay() {
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
@@ -256,9 +254,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		const month = currentDate.getMonth();
 		const today = new Date();
 		today.setHours(0, 0, 0, 0);
-		const todayStr = `${today.getFullYear()}-${String(
+		const todayStr = `${String(today.getDate()).padStart(2, "0")}-${String(
 			today.getMonth() + 1
-		).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+		).padStart(2, "0")}-${today.getFullYear()}`;
 		const daysInMonth = new Date(year, month + 1, 0).getDate();
 		const firstDayOfMonth = new Date(year, month, 1).getDay();
 		calendarDays.innerHTML = "";
